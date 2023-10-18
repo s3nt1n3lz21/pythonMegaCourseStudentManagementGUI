@@ -14,6 +14,7 @@ class MainWindow(QMainWindow):
 
         file_menu_item = self.menuBar().addMenu("&File")
         help_menu_item = self.menuBar().addMenu("&Help")
+        edit_menu_item = self.menuBar().addMenu("&Edit")
 
         add_student_action = QAction("Add Student", self)
         add_student_action.triggered.connect(self.insert)
@@ -23,6 +24,10 @@ class MainWindow(QMainWindow):
         help_menu_item.addAction(about_action)
         # Fix to show help menu on MAC OS
         about_action.setMenuRole(QAction.MenuRole.NoRole)
+
+        search_action = QAction("Search", self)
+        search_action.triggered.connect(self.search)
+        edit_menu_item.addAction(search_action)
 
         self.table = QTableWidget()
         self.table.setColumnCount(4)
@@ -44,6 +49,43 @@ class MainWindow(QMainWindow):
     def insert(self):
         dialog = AddStudentDialog()
         dialog.exec()
+
+    def search(self):
+        dialog = SearchStudentDialog()
+        dialog.exec()
+
+    def search_student(self, search_text):
+        connection = sqlite3.connect("database.db")
+        result = connection.execute("SELECT * FROM students WHERE name = ?", (search_text,))
+        self.table.setRowCount(0)
+        for row_number, row_data in enumerate(result):
+            self.table.insertRow(row_number)
+            for column_number, data in enumerate(row_data):
+                self.table.setItem(row_number, column_number, QTableWidgetItem(str(data)))
+        connection.close()
+
+class SearchStudentDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Search Student")
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
+
+        layout = QVBoxLayout()
+
+        self.student_search = QLineEdit()
+        self.student_search.setPlaceholderText("Name")
+        layout.addWidget(self.student_search)
+
+        button = QPushButton("Search")
+        button.clicked.connect(self.search)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def search(self):
+        search_text = self.student_search.text()
+        main_window.search_student(search_text)
 
 class AddStudentDialog(QDialog):
     def __init__(self):
