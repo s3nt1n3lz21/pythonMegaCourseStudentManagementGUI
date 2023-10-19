@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import (QApplication, QVBoxLayout, QLabel,
                              QWidget, QGridLayout, QLineEdit,
-                             QPushButton, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox, QToolBar
+                             QPushButton, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox, QToolBar,
+                             QStatusBar
                              )
 from PyQt6.QtGui import QAction, QIcon
 import sys
@@ -44,6 +45,41 @@ class MainWindow(QMainWindow):
         toolbar.addAction(add_student_action)
         toolbar.addAction(search_action)
 
+        # Create status bar
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+
+        # Detect a user clicking on a table cell
+        self.table.cellClicked.connect(self.cell_clicked)
+
+        # hello = QLabel("Hello World")
+        # self.status_bar.addWidget(hello)
+
+    def cell_clicked(self):
+        edit_button = QPushButton("Edit Record")
+        edit_button.clicked.connect(self.edit)
+
+        delete_button = QPushButton("Delete Record")
+        delete_button.clicked.connect(self.delete)
+
+        # Remove existing buttons from bottom status bar
+        children = self.findChildren(QPushButton)
+        if children:
+            for child in children:
+                self.status_bar.removeWidget(child)
+
+        # Add edit and delete button to bottom status bar
+        self.status_bar.addWidget(edit_button)
+        self.status_bar.addWidget(delete_button)
+
+    def edit(self):
+        dialog = EditDialog()
+        dialog.exec()
+
+    def delete(self):
+        dialog = DeleteDialog()
+        dialog.exec()
+
     def load_data(self):
         connection = sqlite3.connect("database.db")
         result = connection.execute("SELECT * FROM students")
@@ -71,6 +107,12 @@ class MainWindow(QMainWindow):
             for column_number, data in enumerate(row_data):
                 self.table.setItem(row_number, column_number, QTableWidgetItem(str(data)))
         connection.close()
+
+class EditDialog(QDialog):
+    pass
+
+class DeleteDialog(QDialog):
+    pass
 
 class SearchStudentDialog(QDialog):
     def __init__(self):
