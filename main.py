@@ -23,6 +23,7 @@ class MainWindow(QMainWindow):
         file_menu_item.addAction(add_student_action)
 
         about_action = QAction("About", self)
+        about_action.triggered.connect(self.about)
         help_menu_item.addAction(about_action)
         # Fix to show help menu on MAC OS
         about_action.setMenuRole(QAction.MenuRole.NoRole)
@@ -98,6 +99,10 @@ class MainWindow(QMainWindow):
         dialog = SearchStudentDialog()
         dialog.exec()
 
+    def about(self):
+        dialog = AboutDialog()
+        dialog.exec()
+
     def search_student(self, search_text):
         connection = sqlite3.connect("database.db")
         result = connection.execute("SELECT * FROM students WHERE name = ?", (search_text,))
@@ -107,6 +112,14 @@ class MainWindow(QMainWindow):
             for column_number, data in enumerate(row_data):
                 self.table.setItem(row_number, column_number, QTableWidgetItem(str(data)))
         connection.close()
+
+class AboutDialog(QMessageBox):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("About")
+        self.setText("A Student Management App.")
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
 
 class EditDialog(QDialog):
     def __init__(self):
